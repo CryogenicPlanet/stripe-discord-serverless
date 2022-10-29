@@ -100,7 +100,14 @@ export const sendPaymentIntent = async (
     .setColor('#4752b2')
     .setTitle('Payment succeeded')
     .addFields(
-      { name: 'Amount', value: `${data.amount} ${data.currency}` },
+      {
+        name: 'Amount',
+        value: `${
+          data.currency === 'usd'
+            ? `$${data.amount / 100}`
+            : `${data.amount} ${data.currency}`
+        }`
+      },
       {
         name: 'Email',
         value: `${data.charges?.data[0].billing_details.email}`
