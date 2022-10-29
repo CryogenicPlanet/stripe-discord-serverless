@@ -1,4 +1,4 @@
-![stripe-discord-serverless](./docs/banner.jpg)
+![stripe-discord-serverless](./docs/banner.png)
 
 <h3 align="center">Get stripe's events forwarded to Discord webhooks through Vercel serverless functions.</h3>
 
