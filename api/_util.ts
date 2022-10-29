@@ -41,9 +41,6 @@ export function error(message: string): EmbedBuilder {
         'https://pbs.twimg.com/profile_images/1503494829094756357/ihaECs5p_400x400.jpg'
     })
     .setTimestamp()
-    .setImage(
-      'https://pbs.twimg.com/profile_images/1503494829094756357/ihaECs5p_400x400.jpg'
-    )
 }
 
 export function exec(url: string, embed: EmbedBuilder) {
@@ -75,9 +72,6 @@ export const sendCustomer = async (
       iconURL:
         'https://pbs.twimg.com/profile_images/1503494829094756357/ihaECs5p_400x400.jpg'
     })
-    .setImage(
-      'https://pbs.twimg.com/profile_images/1503494829094756357/ihaECs5p_400x400.jpg'
-    )
 
   const request = await exec(url, embed)
 
@@ -112,9 +106,6 @@ export const sendPaymentIntent = async (
         name: 'Email',
         value: `${data.receipt_email}`
       }
-    )
-    .setImage(
-      'https://pbs.twimg.com/profile_images/1503494829094756357/ihaECs5p_400x400.jpg'
     )
     .setTimestamp(moment(payload.created).toDate())
     .setFooter({
