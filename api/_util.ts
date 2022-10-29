@@ -1,14 +1,14 @@
-import { MessageEmbed } from "discord.js";
-import moment from "moment";
-import fetch from "node-fetch";
-import Stripe from "stripe";
+import { EmbedBuilder } from 'discord.js'
+import moment from 'moment'
+import fetch from 'node-fetch'
+import Stripe from 'stripe'
 
 /**
  * Get the task ID from url
  * @param link task url
  */
 export function getId(link: string): string {
-  return link.split("/")[5].split("#")[0];
+  return link.split('/')[5].split('#')[0]
 }
 
 /**
@@ -16,113 +16,117 @@ export function getId(link: string): string {
  * @param content The content to parse images from
  */
 export function parseImages(content: string): {
-  images: string[];
-  content: string;
+  images: string[]
+  content: string
 } {
-  if (content.trim() === "") {
-    return { images: [], content };
+  if (content.trim() === '') {
+    return { images: [], content }
   }
 
   return {
     images:
       content.match(/\b(https?:\/\/\S+(?:png|jpe?g|gif|webm)\S*)\b/g) || [],
-    content: content.replace(/!\[/g, "["),
-  };
+    content: content.replace(/!\[/g, '[')
+  }
 }
 
-export function error(message: string): MessageEmbed {
-  return new MessageEmbed()
-    .setTitle("Something went wrong")
+export function error(message: string): EmbedBuilder {
+  return new EmbedBuilder()
+    .setTitle('Something went wrong')
     .setDescription(message)
-    .setColor("#ff6363")
-    .setFooter(
-      "Linear App",
-      "https://pbs.twimg.com/profile_images/1121592030449168385/MF6whgy1_400x400.png"
-    )
+    .setColor('#ff6363')
+    .setFooter({
+      text: `Stripe App`,
+      iconURL:
+        'https://pbs.twimg.com/profile_images/1503494829094756357/ihaECs5p_400x400.jpg'
+    })
     .setTimestamp()
-    .setAuthor(
-      "Uh oh...",
-      "https://cdn.icon-icons.com/icons2/1380/PNG/512/vcsconflicting_93497.png"
-    );
 }
 
-export function exec(url: string, embed: MessageEmbed) {
+export function exec(url: string, embed: EmbedBuilder) {
   return fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      embeds: [embed.toJSON()],
-    }),
-  });
+      embeds: [embed.toJSON()]
+    })
+  })
 }
 
 export const sendCustomer = async (
   payload: Stripe.Event,
   webhook: { id: String; token: String }
 ) => {
-  const url = `https://discord.com/api/webhooks/${webhook.id}/${webhook.token}?wait=true`;
+  const url = `https://discord.com/api/webhooks/${webhook.id}/${webhook.token}?wait=true`
 
-  if (payload.type !== "customer.created") return;
-  const data = payload.data.object as Stripe.Customer;
+  if (payload.type !== 'customer.created') return
+  const data = payload.data.object as Stripe.Customer
 
-  const embed = new MessageEmbed()
-    .setDescription(payload.data.object)
-    .setColor("#4752b2")
-    .setTitle("New customer")
-    .addField("Email", data.email)
+  const embed = new EmbedBuilder()
+    .setDescription(JSON.stringify(data.object))
+    .setColor('#4752b2')
+    .setTitle('New customer')
+    .addFields({ name: 'Emails', value: `${data.email}` })
     .setTimestamp(moment(payload.created).toDate())
-    .setFooter(
-      `Stripe App • ${payload.type}`,
-      "https://pbs.twimg.com/profile_images/1503494829094756357/ihaECs5p_400x400.jpg"
-    );
+    .setFooter({
+      text: `Stripe App • ${payload.type}`,
+      iconURL:
+        'https://pbs.twimg.com/profile_images/1503494829094756357/ihaECs5p_400x400.jpg'
+    })
 
-  const request = await exec(url, embed);
+  const request = await exec(url, embed)
 
   if (request.status !== 200) {
-    throw new Error(`Could not send message to discord. \`${request.status}\``);
+    throw new Error(`Could not send message to discord. \`${request.status}\``)
   }
 
-  const response = await request.json();
+  const response = await request.json()
 
   return {
     url,
     response,
-    status: request.status,
-  };
-};
+    status: request.status
+  }
+}
 
 export const sendPaymentIntent = async (
   payload: Stripe.Event,
   webhook: { id: String; token: String }
 ) => {
-  const url = `https://discord.com/api/webhooks/${webhook.id}/${webhook.token}?wait=true`;
+  const url = `https://discord.com/api/webhooks/${webhook.id}/${webhook.token}?wait=true`
 
-  if (payload.type !== "payment_intent.succeeded") return;
-  const data = payload.data.object as Stripe.PaymentIntent;
+  if (payload.type !== 'payment_intent.succeeded') return
+  const data = payload.data.object as Stripe.PaymentIntent
 
-  const embed = new MessageEmbed()
-    .setDescription(payload.data.object)
-    .setColor("#4752b2")
-    .setTitle("Payment succeeded")
-    .addField("Amount", data.amount)
-    .addField("Email", data.receipt_email)
+  const embed = new EmbedBuilder()
+    .setDescription(JSON.stringify(payload.data.object))
+    .setColor('#4752b2')
+    .setTitle('Payment succeeded')
+    .addFields(
+      { name: 'Amount', value: `${data.amount}` },
+      {
+        name: 'Email',
+        value: `${data.receipt_email}`
+      }
+    )
     .setTimestamp(moment(payload.created).toDate())
-    .setFooter(
-      `Stripe App • ${payload.type}`,
-      "https://pbs.twimg.com/profile_images/1503494829094756357/ihaECs5p_400x400.jpg"
-    );
+    .setFooter({
+      text: `Stripe App • ${payload.type}`,
+      iconURL:
+        'https://pbs.twimg.com/profile_images/1503494829094756357/ihaECs5p_400x400.jpg'
+    })
 
-  const request = await exec(url, embed);
+  const request = await exec(url, embed)
 
   if (request.status !== 200) {
-    throw new Error(`Could not send message to discord. \`${request.status}\``);
+    throw new Error(`Could not send message to discord. \`${request.status}\``)
   }
 
-  const response = await request.json();
+  const response = await request.json()
 
   return {
     url,
     response,
-    status: request.status,
-  };
-};
+    status: request.status
+  }
+}
