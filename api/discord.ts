@@ -42,7 +42,7 @@ export default async function handler(
   try {
     if (event.type === 'customer.created') {
       await sendCustomer(event, { id, token })
-    } else if (event.type === 'Comment') {
+    } else if (event.type === 'payment_intent.succeeded') {
       await sendPaymentIntent(event, { id, token })
     } else {
       res.json({
