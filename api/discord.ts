@@ -1,17 +1,19 @@
-import { NowRequest, NowResponse } from "@now/node";
+import Stripe from "stripe";
 
-import { RequestBody as IncomingLinearWebhookPayload } from "./_types";
-import { error, exec, sendComment, sendIssue } from "./_util";
+import { VercelRequest, VercelResponse } from "@vercel/node";
+
+import { error, exec, sendCustomer, sendPaymentIntent } from "./_util";
 
 export default async function handler(
-  req: NowRequest,
-  res: NowResponse
+  req: VercelRequest,
+  res: VercelResponse
 ): Promise<void> {
   if (!req.method || req.method.toUpperCase() !== "POST") {
-    return void res.status(405).json({
+    res.status(405).json({
       success: false,
       message: `Cannot ${req.method} this endpoint. Must be POST`,
     });
+    return;
   }
 
   const { id, token } = req.query as {
@@ -19,54 +21,39 @@ export default async function handler(
     token: string;
   };
 
-  const body = req.body as Partial<IncomingLinearWebhookPayload> | undefined;
+  const event = req.body as Stripe.Event;
 
-  if (!body || !body.type || !body.action || !body.data) {
-    return void res.status(422).json({
+  if (!event || !event.type || !event.data) {
+    res.status(422).json({
       success: false,
       message: "No body sent",
     });
+    return;
   }
 
-  if (!["create", "update"].includes(body.action)) {
-    return void res.json({
-      success: false,
-      message: "This is for creation or update of issues only!",
-    });
-  }
-
-  if (!body.data) {
-    return void res.json({
+  if (!event.data) {
+    res.json({
       success: false,
       message: "Issue data was not sent",
     });
+    return;
   }
-
-  if (!body.url) {
-    return void res.json({
-      success: false,
-      message: "No Issue URL was sent",
-    });
-  }
-
-  const options = [
-    { action: body.action, url: body.url },
-    { id, token },
-  ] as const;
 
   try {
-    if (body.type === "Issue") {
-      await sendIssue(body.data, ...options);
-    } else if (body.type === "Comment") {
-      await sendComment(body.data, ...options);
+    if (event.type === "customer.created") {
+      await sendCustomer(event, { id, token });
+    } else if (event.type === "Comment") {
+      await sendPaymentIntent(event, { id, token });
     } else {
-      return void res.json({
+      res.json({
         success: false,
-        message: "You ",
+        message:
+          "Currently only support customer creation and payment success ",
       });
+      return;
     }
 
-    return void res.json({
+    res.json({
       success: true,
       message: "Success, webhook has been sent.",
     });
@@ -74,7 +61,7 @@ export default async function handler(
     const url = `https://discord.com/api/webhooks/${id}/${token}`;
     await exec(url, error(e.message));
 
-    return void res.status(500).json({
+    res.status(500).json({
       success: false,
       message: `Something went wrong: ${e.message}`,
     });
