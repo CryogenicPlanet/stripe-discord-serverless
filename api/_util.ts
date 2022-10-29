@@ -1,5 +1,4 @@
 import { EmbedBuilder } from 'discord.js'
-import moment from 'moment'
 import fetch from 'node-fetch'
 import Stripe from 'stripe'
 
@@ -66,7 +65,7 @@ export const sendCustomer = async (
     .setColor('#4752b2')
     .setTitle('New customer')
     .addFields({ name: 'Email', value: `${data.email}` })
-    .setTimestamp(moment(payload.created).toDate())
+    .setTimestamp(payload.created)
     .setFooter({
       text: `Stripe App • ${payload.type}`,
       iconURL:
@@ -101,13 +100,13 @@ export const sendPaymentIntent = async (
     .setColor('#4752b2')
     .setTitle('Payment succeeded')
     .addFields(
-      { name: 'Amount', value: `${data.amount}` },
+      { name: 'Amount', value: `${data.amount} ${data.currency}` },
       {
         name: 'Email',
-        value: `${data.receipt_email}`
+        value: `${data.charges?.data[0].billing_details.email}`
       }
     )
-    .setTimestamp(moment(payload.created).toDate())
+    .setTimestamp(payload.created)
     .setFooter({
       text: `Stripe App • ${payload.type}`,
       iconURL:
