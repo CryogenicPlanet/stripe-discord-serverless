@@ -65,7 +65,7 @@ export const sendCustomer = async (
     .setColor('#4752b2')
     .setTitle('New customer')
     .addFields({ name: 'Email', value: `${data.email}` })
-    .setTimestamp(payload.created)
+    .setTimestamp(payload.created * 1000)
     .setFooter({
       text: `Stripe App • ${payload.type}`,
       iconURL:
@@ -106,7 +106,7 @@ export const sendPaymentIntent = async (
         value: `${data.charges?.data[0].billing_details.email}`
       }
     )
-    .setTimestamp(payload.created)
+    .setTimestamp(payload.created * 1000)
     .setFooter({
       text: `Stripe App • ${payload.type}`,
       iconURL:
